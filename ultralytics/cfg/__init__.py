@@ -181,6 +181,8 @@ CFG_FRACTION_KEYS = frozenset(
         "conf",
         "iou",
         "fraction",
+        "multi_label_conf"
+
     }
 )
 CFG_INT_KEYS = frozenset(
@@ -234,6 +236,7 @@ CFG_BOOL_KEYS = frozenset(
         "nms",
         "profile",
         "multi_scale",
+        "multi_label"
     }
 )
 

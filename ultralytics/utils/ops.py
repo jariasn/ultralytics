@@ -194,6 +194,7 @@ def non_max_suppression(
     in_place=True,
     rotated=False,
     end2end=False,
+    multi_label_conf=0.25
 ):
     """
     Perform non-maximum suppression (NMS) on a set of boxes, with support for masks and multiple labels per box.
@@ -284,7 +285,7 @@ def non_max_suppression(
         box, cls, mask = x.split((4, nc, nm), 1)
 
         if multi_label:
-            i, j = torch.where(cls > conf_thres)
+            i, j = torch.where(cls > multi_label_conf)
             x = torch.cat((box[i], x[i, 4 + j, None], j[:, None].float(), mask[i]), 1)
         else:  # best class only
             conf, j = cls.max(1, keepdim=True)
@@ -799,11 +800,10 @@ def regularize_rboxes(rboxes):
         (torch.Tensor): The regularized boxes.
     """
     x, y, w, h, t = rboxes.unbind(dim=-1)
-    # Swap edge if t >= pi/2 while not being symmetrically opposite
-    swap = t % math.pi >= math.pi / 2
-    w_ = torch.where(swap, h, w)
-    h_ = torch.where(swap, w, h)
-    t = t % (math.pi / 2)
+    # Swap edge and angle if h >= w
+    w_ = torch.where(w > h, w, h)
+    h_ = torch.where(w > h, h, w)
+    t = torch.where(w > h, t, t + math.pi / 2) % math.pi
     return torch.stack([x, y, w_, h_, t], dim=-1)  # regularized boxes
 
 
